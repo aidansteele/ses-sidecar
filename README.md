@@ -14,9 +14,10 @@ docker run -it \
 ```
 
 This will start an SMTP server listening on port 1025 that uses the AWS SES
-SendRawEmail API to deliver email. In practice you would associate an IAM role
-with the container via your orchestration system, e.g. an ECS task IAM role
-or EKS IRSA service account role. That role needs `ses:SendRawEmail` permission.
+SendRawEmail API to deliver email. In practice, you wouldn't pass credentials
+like this example, you would associate an IAM role with the container via your 
+orchestration system, e.g. an ECS task IAM role or EKS IRSA service account role. 
+That role needs `ses:SendRawEmail` permission.
 
 This is a proof-of-concept, but it works and can be deployed as a sidecar to
 your application. It exists because (as of the time of writing) the SES SMTP 
