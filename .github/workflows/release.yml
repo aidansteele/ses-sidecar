@@ -30,9 +30,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish container image with ko
-        env:
-          KO_DOCKER_REPO: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
         run: |
+          export KO_DOCKER_REPO=ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           ko build --platform=all --bare --sbom=none --tags ${{ github.ref_name }},latest .
 
       - name: Build binaries for release
@@ -53,7 +52,7 @@ jobs:
             ## 🐳 Container Image
             
             ```bash
-            docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.ref_name }}
+            docker pull ghcr.io/quentinbtd/ses-sidecar:${{ github.ref_name }}
             ```
             
             ## 📦 Binaries
