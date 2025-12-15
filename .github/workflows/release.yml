@@ -31,7 +31,7 @@ jobs:
 
       - name: Build and publish container image with ko
         env:
-          KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
+          KO_DOCKER_REPO: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
         run: |
           ko build --platform=all --bare --sbom=none --tags ${{ github.ref_name }},latest .
 
@@ -53,7 +53,7 @@ jobs:
             ## 🐳 Container Image
             
             ```bash
-            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.ref_name }}
             ```
             
             ## 📦 Binaries
