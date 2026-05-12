@@ -32,16 +32,16 @@ jobs:
       - name: Build and publish container image with ko
         run: |
           export KO_DOCKER_REPO=ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          ko build --platform=all --bare --sbom=none --tags ${{ github.ref_name }},latest .
+          ko build --platform=all --bare --sbom=none --tags ${{ github.ref_name }},latest ./cmd/ses-sidecar
 
       - name: Build binaries for release
         run: |
           mkdir -p dist
-          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/ses-sidecar-linux-amd64 .
-          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/ses-sidecar-linux-arm64 .
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/ses-sidecar-darwin-amd64 .
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/ses-sidecar-darwin-arm64 .
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/ses-sidecar-windows-amd64.exe .
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/ses-sidecar-linux-amd64 ./cmd/ses-sidecar
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/ses-sidecar-linux-arm64 ./cmd/ses-sidecar
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/ses-sidecar-darwin-amd64 ./cmd/ses-sidecar
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/ses-sidecar-darwin-arm64 ./cmd/ses-sidecar
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/ses-sidecar-windows-amd64.exe ./cmd/ses-sidecar
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

@@ -1,5 +1,13 @@
 # ses-sidecar
 
+## Project layout
+
+The repository follows the `golang-standards/project-layout` conventions:
+
+- `cmd/ses-sidecar`: application entrypoint (`main` package)
+- `internal/app/sessidecar`: private SMTP/SES application code
+- `.github/workflows`: release automation
+
 ## Usage
 
 ```

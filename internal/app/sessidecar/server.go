@@ -1,39 +1,23 @@
-package main
+package sessidecar
 
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/config"
+	"io"
+	"net"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/emersion/go-smtp"
 	"golang.org/x/exp/slog"
-	"io"
-	"net"
-	"os"
-	"time"
 )
 
-func main() {
-	ctx := context.Background()
-
-	logger := slog.New(slog.NewJSONHandler(os.Stdout))
-	slog.SetDefault(logger)
-
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		panic(fmt.Sprintf("%+v", err))
-	}
-
+func Run(ctx context.Context, logger *slog.Logger, sesClient *ses.Client, addr string) error {
 	bkd := &Backend{
 		logger:  logger,
-		ses:     ses.NewFromConfig(cfg),
+		ses:     sesClient,
 		baseCtx: ctx,
-	}
-
-	addr := os.Getenv("ADDR")
-	if addr == "" {
-		addr = "127.0.0.1:1025"
 	}
 
 	s := smtp.NewServer(bkd)
@@ -44,10 +28,7 @@ func main() {
 	s.AllowInsecureAuth = true
 
 	logger.Info("Starting server", "addr", s.Addr)
-	if err := s.ListenAndServe(); err != nil {
-		logger.Error("starting server", err)
-		os.Exit(1)
-	}
+	return s.ListenAndServe()
 }
 
 type Backend struct {
@@ -57,8 +38,8 @@ type Backend struct {
 }
 
 func (bkd *Backend) NewSession(conn *smtp.Conn) (smtp.Session, error) {
-	clientIp, clientPort, _ := net.SplitHostPort(conn.Conn().RemoteAddr().String())
-	l := bkd.logger.With("clientIp", clientIp, "clientPort", clientPort)
+	clientIP, clientPort, _ := net.SplitHostPort(conn.Conn().RemoteAddr().String())
+	l := bkd.logger.With("clientIp", clientIP, "clientPort", clientPort)
 
 	return &Session{
 		logger:     l,
@@ -68,7 +49,6 @@ func (bkd *Backend) NewSession(conn *smtp.Conn) (smtp.Session, error) {
 	}, nil
 }
 
-// A Session is returned after EHLO.
 type Session struct {
 	logger     *slog.Logger
 	baseLogger *slog.Logger
@@ -116,14 +96,14 @@ func (s *Session) Data(r io.Reader) error {
 		return err
 	}
 
-	messageId := *sent.MessageId
-	l = l.With("sesMessageId", messageId)
+	messageID := *sent.MessageId
+	l = l.With("sesMessageId", messageID)
 	l.Info("Sent email")
 
 	return &smtp.SMTPError{
 		Code:         250,
 		EnhancedCode: smtp.EnhancedCode{2, 0, 0},
-		Message:      fmt.Sprintf("OK: queued as %s", messageId),
+		Message:      fmt.Sprintf("OK: queued as %s", messageID),
 	}
 }
 
